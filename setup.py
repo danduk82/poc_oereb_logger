@@ -5,6 +5,7 @@ from setuptools import setup
 requires = [
     'pyramid',
     'pyramid_chameleon',
+    'sqlalchemy',
     'waitress',
     'webtest',
 ]
