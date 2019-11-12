@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 import logging 
 import datetime
 
-from models import Base, HttpLogs
+from .models import Base, HttpLogs
 
 class OEREBHttpLogger(logging.Handler):
     def __init__(self, session):
