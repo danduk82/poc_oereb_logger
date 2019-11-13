@@ -4,6 +4,8 @@ The idea is to use something like this in pyramid_oereb project, the logger must
 
 The current state uses the logger written in folder `sqlalchemylogger/` and is configured to send both application and apache-like logs to a sqlite DB. If the DB does not exist, it is created at the first use of the logger.
 
+NB: the contents of folder `logger` are another (uncessful) test but kept for further discussion.
+
 Whe generate apache-like logs using [Paste.Translogger](https://github.com/cdent/paste/blob/master/paste/translogger.py), which is a giant wrapper around the WSGI application.
 
 Everything is configured in `development.ini`.
