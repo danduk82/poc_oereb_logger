@@ -20,7 +20,7 @@ to check the logger try:
 ```shell
 curl localhost:6543/
 ```
-```shell
+
 you should see the results both on console output and find them in SQL DB:
 
 
