@@ -3,16 +3,19 @@ import traceback
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .models import Log, Base
+from sqlalchemy.exc import OperationalError
 
 class SQLAlchemyHandler(logging.Handler):
     def __init__(self, sqlalchemyUrl):
         super().__init__()
-        engine = create_engine(sqlalchemyUrl)
-        Base.metadata.bind = engine
-        DBSession = sessionmaker(bind=engine)
+        self.engine = create_engine(sqlalchemyUrl)
+        Base.metadata.bind = self.engine
+        DBSession = sessionmaker(bind=self.engine)
         self.session = DBSession()
 
-    # A very basic logger that commits a LogRecord to the SQL Db
+    def create_db(self):
+        Base.metadata.create_all(self.engine)
+
     def emit(self, record):
         trace = None
         exc = record.__dict__['exc_info']
@@ -24,4 +27,11 @@ class SQLAlchemyHandler(logging.Handler):
             trace=trace,
             msg=record.__dict__['msg'],)
         self.session.add(log)
-        self.session.commit()
+        try:
+            self.session.commit()
+        except OperationalError:
+            self.create_db()
+            self.session.rollback()
+            self.session.add(log)
+            self.session.commit()
+
