@@ -3,9 +3,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import logging 
 import datetime
-from logger_handler import OEREBHttpLogger
+from logger.logger_handler import OEREBHttpLogger
 
-from models import Base, HttpLogs
+from logger.models import Base, HttpLogs
 
 
 if __name__ == '__main__':
@@ -38,4 +38,5 @@ if __name__ == '__main__':
                                          'flavour':'blabla',
                                          'requested_format': 'json',
                                          'service_type': 'GetCapabilities'})
+    import pdb; pdb.set_trace()
     log_adapter.info('marche pas de nouveau')

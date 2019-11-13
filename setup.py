@@ -8,6 +8,8 @@ requires = [
     'sqlalchemy',
     'waitress',
     'webtest',
+    'transaction',
+    'Paste',
 ]
 # List of dependencies installed via `pip install -e ".[dev]"`
 # by virtue of the Setuptools `extras_require` value in the Python
@@ -15,6 +17,7 @@ requires = [
 dev_requires = [
     'pyramid_debugtoolbar',
     'pytest',
+    'apache-log-parser',
 ]
 
 
