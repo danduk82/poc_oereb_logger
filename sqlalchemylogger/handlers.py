@@ -1,11 +1,17 @@
 import logging
 import traceback
-
-import transaction
-
-from .models import Log, DBSession
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from .models import Log, Base
 
 class SQLAlchemyHandler(logging.Handler):
+    def __init__(self, sqlalchemyUrl):
+        super().__init__()
+        engine = create_engine(sqlalchemyUrl)
+        Base.metadata.bind = engine
+        DBSession = sessionmaker(bind=engine)
+        self.session = DBSession()
+
     # A very basic logger that commits a LogRecord to the SQL Db
     def emit(self, record):
         trace = None
@@ -17,5 +23,5 @@ class SQLAlchemyHandler(logging.Handler):
             level=record.__dict__['levelname'],
             trace=trace,
             msg=record.__dict__['msg'],)
-        DBSession.add(log)
-        transaction.commit()
+        self.session.add(log)
+        self.session.commit()
