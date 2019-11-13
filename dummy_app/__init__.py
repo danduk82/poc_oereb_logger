@@ -8,5 +8,5 @@ def main(global_config, **settings):
     config.add_route('hello', '/howdy')
     config.scan('.views')
     app = config.make_wsgi_app()
-    app = TransLogger(app, setup_console_handler=False)
+#    app = TransLogger(app, setup_console_handler=False)
     return app
