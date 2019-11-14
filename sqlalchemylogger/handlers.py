@@ -3,7 +3,7 @@ import traceback
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .models import Log, Base
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, InvalidRequestError
 
 class SQLAlchemyHandler(logging.Handler):
     def __init__(self, sqlalchemyUrl):
@@ -29,9 +29,14 @@ class SQLAlchemyHandler(logging.Handler):
         self.session.add(log)
         try:
             self.session.commit()
-        except OperationalError:
-            self.create_db()
-            self.session.rollback()
-            self.session.add(log)
-            self.session.commit()
+        except (OperationalError, InvalidRequestError):
+            try: 
+                self.create_db()
+                self.session.rollback()
+                self.session.add(log)
+                self.session.commit()
+            except:
+                 # if we really cannot commit the change to DB, do not lock the
+                 # wsgi application
+                 pass
 
