@@ -10,7 +10,13 @@ Whe generate apache-like logs using [Paste.Translogger](https://github.com/cdent
 
 Everything is configured in `development.ini`.
 
+Prerequisites
+-------------
+
+please ensure that you have `python3-venv` and `sqlite3` packages installed on your machine.
+
 To run the project:
+-------------------
 
 ```shell
 make install
