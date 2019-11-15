@@ -27,20 +27,21 @@ class SQLAlchemyHandler(logging.Handler):
 
 
     def _processor(self):
-        while True:
+        _terminated = False
+        while not _terminated:
             logs = []
             time_since_last = time.time()
             while True:
                 try:
                     log = self.log_queue.get(timeout=self.MAX_TIMEOUT)
                     if log is None:
-                        break
+                        # one way of killing a thread
+                        _terminated = True
                     logs.append(log)
                 except queue.Empty:
                      pass
                 if len(logs) > 0:
                     if (len(logs) >= self.MAX_NB_LOGS) or (time_since_last + self.MAX_TIMEOUT <= time.time()) :
-                        print('samere')
                         self._writeLogs(logs)
                         self.log_queue.task_done()
                         break
