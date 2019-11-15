@@ -7,7 +7,5 @@ class ContainsExpression(logging.Filter):
         self.regex = regex
 
     def filter(self, record):
-        if re.match(self.regex, record.msg):
-            return True
-        else:
-            return False
+        return not bool(re.search(self.regex, record.msg))
+
