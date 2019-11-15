@@ -22,7 +22,7 @@ class SQLAlchemyHandler(logging.Handler):
         # initialize log queue
         self.log_queue = queue.Queue()
         # initialize a thread to process the logs Asynchronously
-        self.processor_thread = threading.Thread(target = self._processor)
+        self.processor_thread = threading.Thread(target = self._processor, daemon = True)
         self.processor_thread.start()
 
 
