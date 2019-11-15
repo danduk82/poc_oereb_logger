@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from .models import Log, Base
 from sqlalchemy.exc import OperationalError, InvalidRequestError
 import threading, queue, time
+from .filters import ContainsExpression
 
 
 class SQLAlchemyHandler(logging.Handler):
@@ -12,7 +13,7 @@ class SQLAlchemyHandler(logging.Handler):
     MAX_NB_LOGS = 100
     MAX_TIMEOUT = 5
 
-    def __init__(self, sqlalchemyUrl):
+    def __init__(self, sqlalchemyUrl, containsExpression = None):
         super().__init__()
         # initialize DB session
         self.engine = create_engine(sqlalchemyUrl)
@@ -24,6 +25,9 @@ class SQLAlchemyHandler(logging.Handler):
         # initialize a thread to process the logs Asynchronously
         self.processor_thread = threading.Thread(target = self._processor, daemon = True)
         self.processor_thread.start()
+        # initialize filters
+        if containsExpression:
+             self.addFilter(ContainsExpression(containsExpression))
 
 
     def _processor(self):
