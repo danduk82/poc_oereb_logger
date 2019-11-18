@@ -56,8 +56,9 @@ class SQLAlchemyHandler(logging.Handler):
 
 
     def _writeLogs(self,logs):
-       self.session.bulk_save_objects(logs)
+
        try:
+           self.session.bulk_save_objects(logs)
            self.session.commit()
        except (OperationalError, InvalidRequestError):
            try: 
