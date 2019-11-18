@@ -18,7 +18,7 @@ class SQLAlchemyHandler(logging.Handler):
               containsExpression = None):
         super().__init__()
         # initialize DB session
-        self.engine = create_engine(sqlalchemyUrl)
+        self.engine = create_engine(sqlalchemyUrl['url'])
         Base.metadata.bind = self.engine
         DBSession = sessionmaker(bind=self.engine)
         self.session = DBSession()
