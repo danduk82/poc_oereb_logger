@@ -59,7 +59,6 @@ class SQLAlchemyHandler(logging.Handler):
                             self._write_logs(logs)
                             self.log_queue.task_done()
                             break
-            self._write_logs(logs)
 
 
     def _write_logs(self,logs):
