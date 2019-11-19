@@ -22,9 +22,7 @@ def createLogClass(tablename = 'logs', tableargs = None):
         msg = Column(String) # any custom log you may have included
         created_at = Column(DateTime, default=func.now()) # the current timestamp
     
-        def __init__(self, logger=None, level=None, trace=None, msg=None,
-                  tableName='logs'):
-            self.__tablename__ = tableName
+        def __init__(self, logger=None, level=None, trace=None, msg=None):
             self.logger = logger
             self.level = level
             self.trace = trace

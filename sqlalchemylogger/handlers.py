@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from .models import createLogClass, Base
 from sqlalchemy.exc import OperationalError, InvalidRequestError
 from sqlalchemy_utils import database_exists, create_database
-import threading, queue, time
+import threading, time, queue
 from .filters import ContainsExpression, DoesNotContainExpression
 
 
@@ -32,6 +32,7 @@ class SQLAlchemyHandler(logging.Handler):
         # initialize log queue
         self.log_queue = queue.Queue()
         # initialize a thread to process the logs Asynchronously
+        self.condition = threading.Condition()
         self.processor_thread = threading.Thread(target = self._processor, daemon = True)
         self.processor_thread.start()
         # initialize filters
@@ -42,32 +43,32 @@ class SQLAlchemyHandler(logging.Handler):
 
 
     def _processor(self):
-        _terminated = False
-        while not _terminated:
+        module_logs.debug('{} : starting processor thread'.format(__name__))
+        while True:
             logs = []
-            time_since_last = time.time()
+            time_since_last = time.monotonic()
             while True:
-                try:
-                    log = self.log_queue.get(timeout=self.MAX_TIMEOUT)
-                    if log is None:
-                        # one way of killing a thread
-                        _terminated = True
-                    logs.append(log)
-                except queue.Empty:
-                     pass
-                if len(logs) > 0:
-                    if (len(logs) >= self.MAX_NB_LOGS) or (time_since_last + self.MAX_TIMEOUT <= time.time()) :
-                        self._writeLogs(logs)
+                with self.condition:
+                    self.condition.wait(timeout = self.MAX_TIMEOUT)
+                    if not self.log_queue.empty():
+                        logs.append(self.log_queue.get())
                         self.log_queue.task_done()
+                if len(logs) > 0:
+                    # try to reduce the number of INSERT requests to the DB
+                    # by writing chunks of self.MAX_NB_LOGS size,
+                    # but also do not wait forever before writing stuff (self.MAX_TIMOUT)
+                    if (len(logs) >= self.MAX_NB_LOGS) or (time.monotonic() >= (time_since_last + self.MAX_TIMEOUT)):
+                        self._write_logs(logs)
                         break
+        module_logs.debug('{} : stopping processor thread'.format(__name__))
 
 
-    def _writeLogs(self,logs):
+    def _write_logs(self,logs):
        try:
            self.session.bulk_save_objects(logs)
            self.session.commit()
        except (OperationalError, InvalidRequestError):
-           try: 
+           try:
                self.create_db()
                self.session.rollback()
                self.session.bulk_save_objects(logs)
@@ -82,6 +83,7 @@ class SQLAlchemyHandler(logging.Handler):
 
 
     def create_db(self):
+        module_logs.info('{} : creating new database'.format(__name__))
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
         #FIXME: we should not access directly the private __table_args__
@@ -101,9 +103,11 @@ class SQLAlchemyHandler(logging.Handler):
             logger=record.__dict__['name'],
             level=record.__dict__['levelname'],
             trace=trace,
-            msg=record.__dict__['msg'],)
-        # put the log in an asynchronous queue
-        self.log_queue.put(log)
+            msg=record.__dict__['msg'])
+        with self.condition:
+            # put the log in an asynchronous queue
+            self.log_queue.put(log)
+            self.condition.notify()
 
 
 
