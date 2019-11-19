@@ -43,6 +43,7 @@ class SQLAlchemyHandler(logging.Handler):
 
 
     def _processor(self):
+        module_logs.debug('{} : starting processor thread'.format(__name__))
         while True:
             logs = []
             time_since_last = time.monotonic()
@@ -55,10 +56,11 @@ class SQLAlchemyHandler(logging.Handler):
                         # try to reduce the number of INSERT requests to the DB
                         # by writing chunks of self.MAX_NB_LOGS size,
                         # but also do not wait forever before writing stuff (self.MAX_TIMOUT)
-                        if (len(logs) >= self.MAX_NB_LOGS) or (time.monotonic >= (time_since_last + self.MAX_TIMEOUT)):
+                        if (len(logs) >= self.MAX_NB_LOGS) or (time.monotonic() >= (time_since_last + self.MAX_TIMEOUT)):
                             self._write_logs(logs)
                             self.log_queue.task_done()
                             break
+        module_logs.debug('{} : stopping processor thread'.format(__name__))
 
 
     def _write_logs(self,logs):
@@ -66,7 +68,7 @@ class SQLAlchemyHandler(logging.Handler):
            self.session.bulk_save_objects(logs)
            self.session.commit()
        except (OperationalError, InvalidRequestError):
-           try: 
+           try:
                self.create_db()
                self.session.rollback()
                self.session.bulk_save_objects(logs)
@@ -81,6 +83,7 @@ class SQLAlchemyHandler(logging.Handler):
 
 
     def create_db(self):
+        module_logs.info('{} : creating new database'.format(__name__))
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
         #FIXME: we should not access directly the private __table_args__
