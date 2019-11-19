@@ -57,12 +57,12 @@ class SQLAlchemyHandler(logging.Handler):
                      pass
                 if len(logs) > 0:
                     if (len(logs) >= self.MAX_NB_LOGS) or (time_since_last + self.MAX_TIMEOUT <= time.time()) :
-                        self._writeLogs(logs)
+                        self._write_logs(logs)
                         self.log_queue.task_done()
                         break
 
 
-    def _writeLogs(self,logs):
+    def _write_logs(self,logs):
        try:
            self.session.bulk_save_objects(logs)
            self.session.commit()
