@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from .models import createLogClass, Base
 from sqlalchemy.exc import OperationalError, InvalidRequestError
 from sqlalchemy_utils import database_exists, create_database
-import threading, time
+import threading, time, queue
 from .filters import ContainsExpression, DoesNotContainExpression
 
 
@@ -30,7 +30,7 @@ class SQLAlchemyHandler(logging.Handler):
         DBSession = sessionmaker(bind=self.engine)
         self.session = DBSession()
         # initialize log queue
-        self.log_queue = []
+        self.log_queue = queue.Queue()
         # initialize a thread to process the logs Asynchronously
         self.condition = threading.Condition()
         self.processor_thread = threading.Thread(target = self._processor, daemon = True)
@@ -44,12 +44,22 @@ class SQLAlchemyHandler(logging.Handler):
 
     def _processor(self):
         while True:
-            with self.condition:
-                while not self.log_queue:
-                    self.condition.wait()
-                queue = self.log_queue
-                self.log_queue = []
-            self._write_logs(queue)
+            logs = []
+            time_since_last = time.monotonic()
+            while True:
+                with self.condition:
+                    while self.log_queue.empty():
+                        self.condition.wait()
+                    logs.append(self.log_queue.get())
+                    if len(logs) > 0:
+                        # try to reduce the number of INSERT requests to the DB
+                        # by writing chunks of self.MAX_NB_LOGS size,
+                        # but also do not wait forever before writing stuff (self.MAX_TIMOUT)
+                        if (len(logs) >= self.MAX_NB_LOGS) or (time.monotonic >= (time_since_last + self.MAX_TIMEOUT)):
+                            self._write_logs(logs)
+                            self.log_queue.task_done()
+                            break
+            self._write_logs(logs)
 
 
     def _write_logs(self,logs):
@@ -94,7 +104,7 @@ class SQLAlchemyHandler(logging.Handler):
             msg=record.__dict__['msg'],)
         with self.condition:
             # put the log in an asynchronous queue
-            self.log_queue.append(log)
+            self.log_queue.put(log)
             self.condition.notify()
 
 
