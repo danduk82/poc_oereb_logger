@@ -49,9 +49,9 @@ class SQLAlchemyHandler(logging.Handler):
             time_since_last = time.monotonic()
             while True:
                 with self.condition:
-                    while self.log_queue.empty():
-                        self.condition.wait()
-                    logs.append(self.log_queue.get())
+                    self.condition.wait(timeout = self.MAX_TIMEOUT)
+                    if not self.log_queue.empty():
+                        logs.append(self.log_queue.get())
                     if len(logs) > 0:
                         # try to reduce the number of INSERT requests to the DB
                         # by writing chunks of self.MAX_NB_LOGS size,
@@ -103,7 +103,7 @@ class SQLAlchemyHandler(logging.Handler):
             logger=record.__dict__['name'],
             level=record.__dict__['levelname'],
             trace=trace,
-            msg=record.__dict__['msg'],)
+            msg=record.__dict__['msg'])
         with self.condition:
             # put the log in an asynchronous queue
             self.log_queue.put(log)
