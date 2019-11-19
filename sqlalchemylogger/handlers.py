@@ -52,14 +52,14 @@ class SQLAlchemyHandler(logging.Handler):
                     self.condition.wait(timeout = self.MAX_TIMEOUT)
                     if not self.log_queue.empty():
                         logs.append(self.log_queue.get())
-                    if len(logs) > 0:
-                        # try to reduce the number of INSERT requests to the DB
-                        # by writing chunks of self.MAX_NB_LOGS size,
-                        # but also do not wait forever before writing stuff (self.MAX_TIMOUT)
-                        if (len(logs) >= self.MAX_NB_LOGS) or (time.monotonic() >= (time_since_last + self.MAX_TIMEOUT)):
-                            self._write_logs(logs)
-                            self.log_queue.task_done()
-                            break
+                if len(logs) > 0:
+                    # try to reduce the number of INSERT requests to the DB
+                    # by writing chunks of self.MAX_NB_LOGS size,
+                    # but also do not wait forever before writing stuff (self.MAX_TIMOUT)
+                    if (len(logs) >= self.MAX_NB_LOGS) or (time.monotonic() >= (time_since_last + self.MAX_TIMEOUT)):
+                        self._write_logs(logs)
+                        self.log_queue.task_done()
+                        break
         module_logs.debug('{} : stopping processor thread'.format(__name__))
 
 
