@@ -7,6 +7,7 @@ requires = [
     'pyramid_chameleon',
     'sqlalchemy',
     'zope.sqlalchemy',
+    'psycopg2',
     'waitress',
     'webtest',
     'transaction',
