@@ -1,4 +1,5 @@
 import logging
+from .decorators import log_response
 log = logging.getLogger(__name__)
 
 from pyramid.view import (
@@ -6,10 +7,12 @@ from pyramid.view import (
     view_defaults
     )
 
-@view_defaults(renderer='home.pt')
+
+@view_defaults(renderer='home.pt',decorator = log_response)
 class TutorialViews:
     def __init__(self, request):
         self.request = request
+
 
     @view_config(route_name='home')
     def home(self):
