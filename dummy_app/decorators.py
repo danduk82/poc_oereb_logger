@@ -1,6 +1,5 @@
 
 import logging
-import time
 import json
 
 log = logging.getLogger('JSON')
@@ -30,3 +29,20 @@ def _serialize_request(request):
     x['path']=str(request.path)
     x['view_name']=str(request.view_name)
     return {'request': x}
+
+
+class OerebStats(object):
+    stats={}
+    def __init__(self,
+                 service=None,
+                 output_format=None,
+                 location=None,
+                 flavour=None):
+           self.stats['service']=service
+           self.stats['output_format']=output_format
+           self.stats['location']=location
+           self.stats['flavour']=flavour
+
+    def __repr__(self):
+         json.dumps(self.stats)
+

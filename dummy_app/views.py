@@ -1,5 +1,5 @@
 import logging
-from .decorators import log_response
+from .decorators import log_response, OerebStats
 log = logging.getLogger(__name__)
 from pyramid.response import Response
 from pyramid.view import (
@@ -14,7 +14,6 @@ class TutorialViews:
     def __init__(self, request):
         self.request = request
 
-
     @view_config(route_name='home')
     def home(self):
         log.debug('In home view')
@@ -25,13 +24,6 @@ class TutorialViews:
         log.debug('In hello view')
         return {'name': 'Hello View'}
 
-def _serialize_res(request):
-    x = {}
-    x['status']=response.status
-    x['headers']=dict(response.headers)
-    x['body']=str(response.body)
-    y = {'response': x}
-    return json.dumps(y)
 
 @notfound_view_config(decorator = log_response)
 def notfound_get(request):
