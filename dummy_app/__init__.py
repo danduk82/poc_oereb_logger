@@ -6,6 +6,7 @@ def main(global_config, **settings):
     config.include('pyramid_chameleon')
     config.add_route('home', '/')
     config.add_route('hello', '/howdy')
+    config.add_route('fail', '/fail')
     config.scan('.views')
     app = config.make_wsgi_app()
 #    app = TransLogger(app, setup_console_handler=False)

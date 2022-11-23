@@ -7,7 +7,7 @@ from pyramid.view import (
     notfound_view_config,
     view_defaults
     )
-
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNoContent, HTTPServerError, HTTPNotFound
 
 @view_defaults(renderer='home.pt',decorator = log_response)
 class TutorialViews:
@@ -28,3 +28,13 @@ class TutorialViews:
 @notfound_view_config(decorator = log_response)
 def notfound_get(request):
     return Response('Not Found', status='404 Not Found')
+
+class Fail:
+    def __init__(self,request):
+        self.request = request
+    
+    @view_config(route_name='fail')
+    def samere(self):
+         response = HTTPBadRequest('this request always fails',json_formatter='json')
+         import ipdb; ipdb.set_trace()
+         return response
